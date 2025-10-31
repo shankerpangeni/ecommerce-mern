@@ -31,6 +31,12 @@ const userSchema = new mongoose.Schema({
         type: String,
         required: true
         
+    },
+
+    profilePic:{
+        type:String, //cloudinary url goes here,
+         default: "https://cdn-icons-png.flaticon.com/512/3135/3135715.png", // placeholder avatar
+
     }
 
 
