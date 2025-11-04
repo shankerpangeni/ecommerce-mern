@@ -15,16 +15,19 @@ const productSchema = new mongoose.Schema({
     price: {
         type: Number,
         required: true,
+        index: true,
     },
 
     brand: {
         type: String,
         required: true,
+        index: true,
     },
 
     category: {
         type: String,
         required: true,
+        index: true,
     },
 
     shop: {
@@ -38,12 +41,14 @@ const productSchema = new mongoose.Schema({
         enum: ['Men' , 'Women' , 'Unisex'],
         required: true,
         default: 'Unisex',
+        index:true
     },
 
-    images : [{
-        type: String, //cloudinary url
-        required: true,
+    images: [{
+        url: { type: String, required: true },
+        public_id: { type: String, required: true }
     }],
+
 
     stock: {
         type: Number ,

@@ -1,6 +1,8 @@
 import Stripe from "stripe";
-import { Cart } from "../models/cart.models.js";
-import { Order } from "../models/order.models.js";
+import { Cart } from "./../models/cart.models.js";
+import { Order } from "./../models/order.models.js";
+import { sendEmail } from "./../utils/emailService.js";
+import { User } from "./../models/user.models.js";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
@@ -13,14 +15,15 @@ export const stripeWebhook = async (req, res) => {
       process.env.STRIPE_WEBHOOK_SECRET
     );
 
-    // ✅ Event: Payment Success
+    // ✅ After Payment Success
     if (event.type === "checkout.session.completed") {
       const session = event.data.object;
       const userId = session.metadata.userId;
 
       const cart = await Cart.findOne({ user: userId }).populate("items.product");
+      const user = await User.findById(userId);
 
-      if (cart) {
+      if (cart && user) {
         const items = cart.items.map((item) => ({
           product: item.product._id,
           quantity: item.quantity,
@@ -37,15 +40,29 @@ export const stripeWebhook = async (req, res) => {
           orderStatus: "confirmed",
         });
 
-        // ✅ Clean User Cart
+        // ✅ Clean Cart
         await Cart.findOneAndDelete({ user: userId });
+
+        // ✅ Send Email Receipt
+        const emailHTML = `
+          <h2>✅ Payment Successful!</h2>
+          <p>Hi ${user.name},</p>
+          <p>Thank you for your purchase!</p>
+          <p><strong>Order Total:</strong> $${(session.amount_total / 100).toFixed(2)}</p>
+          <br/>
+          <p>Your order has been confirmed and is being processed.</p>
+          <br/>
+          <p>🛒 Ecommerce Store</p>
+        `;
+
+        await sendEmail(user.email, "Your Order Receipt ✅", emailHTML);
       }
     }
 
     res.json({ received: true });
 
   } catch (error) {
-    console.log(error);
+    console.error("Webhook error:", error.message);
     res.status(400).send(`Webhook error: ${error.message}`);
   }
 };

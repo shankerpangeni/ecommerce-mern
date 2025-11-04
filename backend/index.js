@@ -7,14 +7,15 @@ import userRoutes from './src/routes/user.route.js';
 dotenv.config();
 
 const app = express();
+app.use(express.json());
 
 
 app.use("/api/payment/webhook", express.raw({ type: "application/json" }));
 
-app.use(express.json());
+
 
 const corsOptions = {
-    origin: 'http:localhost:5173',
+    origin: 'http://localhost:5173',
     credentials: true
 }
 app.use(cors(corsOptions));

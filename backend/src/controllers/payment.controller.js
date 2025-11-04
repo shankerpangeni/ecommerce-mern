@@ -1,6 +1,6 @@
 import Stripe from "stripe";
-import { Cart } from "../models/cart.models.js";
-import { Order } from "../models/order.models.js";
+import { Cart } from "./../models/cart.models.js";
+import { Order } from "./../models/order.models.js";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 

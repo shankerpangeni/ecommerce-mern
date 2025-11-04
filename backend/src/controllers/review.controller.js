@@ -1,6 +1,6 @@
-import { Review } from "../models/review.models.js";
-import { Product } from "../models/product.models.js";
-import { Order } from "../models/order.models.js";
+import { Review } from "./../models/review.models.js";
+import { Product } from "./../models/product.models.js";
+import { Order } from "./../models/order.models.js";
 
 // Add or Update Review
 export const addReview = async (req, res) => {

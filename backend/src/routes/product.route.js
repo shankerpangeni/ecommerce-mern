@@ -4,18 +4,46 @@ import {
   getAllProducts,
   getProductById,
   updateProduct,
-  deleteProduct
-} from "./../controllers/product.controller.js";
+  deleteProduct,
+  uploadProductImages
+} from "../controllers/product.controller.js";
 
-import { isAuthenticated } from "./../middleware/isAuthenticated.js";
+import { isAuthenticated } from "../middleware/isAuthenticated.js";
+import { uploadProduct } from "../middleware/upload.js"; // multer-storage-cloudinary for products
 
 const router = express.Router();
 
-// ✅ RESTful Routes
-router.post("/create", isAuthenticated, createProduct);
+// ✅ Create Product + Upload Images (max 5)
+router.post(
+  "/create",
+  isAuthenticated,
+  uploadProduct.array("images", 5),
+  createProduct
+);
+
+// ✅ Get All Products
 router.get("/getall", isAuthenticated, getAllProducts);
+
+// ✅ Get Product By ID
 router.get("/get/:id", isAuthenticated, getProductById);
-router.put("/update/:id", isAuthenticated, updateProduct);
+
+// ✅ Update Product + Replace/Add Images
+router.put(
+  "/update/:id",
+  isAuthenticated,
+  uploadProduct.array("images", 5),
+  updateProduct
+);
+
+// ✅ Delete Product
 router.delete("/delete/:id", isAuthenticated, deleteProduct);
+
+// ✅ Add Images Only (Optional)
+router.post(
+  "/upload-images/:id",
+  isAuthenticated,
+  uploadProduct.array("images", 5),
+  uploadProductImages
+);
 
 export default router;

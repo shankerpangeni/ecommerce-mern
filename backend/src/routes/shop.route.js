@@ -1,22 +1,52 @@
 import express from "express";
-import { isAuthenticated } from "../middlewares/auth.js";
 import {
   createShop,
   getAllShops,
   getShopById,
   updateShop,
-  deleteShop
+  deleteShop,
 } from "../controllers/shop.controller.js";
+
+import { isAuthenticated } from "../middleware/isAuthenticated.js";
+import { cloudinaryUploader } from "../middleware/upload.js"; // multer-storage-cloudinary
 
 const router = express.Router();
 
-// Public routes
-router.get("/", getAllShops);
-router.get("/:id", getShopById);
+// ✅ Create Shop with optional images
+router.post(
+  "/create",
+  isAuthenticated,
+  (req, res, next) => {
+    const upload = cloudinaryUploader("shops", "shop").array("images", 5); // max 5 images
+    upload(req, res, err => {
+      if (err) return res.status(400).json({ message: err.message, success: false });
+      next();
+    });
+  },
+  createShop
+);
 
-// Admin routes
-router.post("/create", isAuthenticated, createShop);
-router.put("/update/:id", isAuthenticated, updateShop);
+// ✅ Get all shops
+router.get("/getall", isAuthenticated, getAllShops);
+
+// ✅ Get shop by ID
+router.get("/get/:id", isAuthenticated, getShopById);
+
+// ✅ Update Shop + Add/Remove Images
+router.put(
+  "/update/:id",
+  isAuthenticated,
+  (req, res, next) => {
+    const upload = cloudinaryUploader("shops", req.params.id).array("images", 5);
+    upload(req, res, err => {
+      if (err) return res.status(400).json({ message: err.message, success: false });
+      next();
+    });
+  },
+  updateShop
+);
+
+// ✅ Delete Shop
 router.delete("/delete/:id", isAuthenticated, deleteShop);
 
 export default router;
