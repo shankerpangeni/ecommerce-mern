@@ -1,25 +1,24 @@
-"use client";
-import { Provider } from "react-redux";
-import { store } from "./store";
+'use client';
 import "./globals.css";
-import { usePathname } from "next/navigation";
+
+import { Provider } from "react-redux";
+import { PersistGate } from "redux-persist/integration/react";
+import { store, persistor } from "@/app/store";
 import GlobalAlert from "@/components/AlertMessage";
-import Navbar from "@/components/Navbar";
+import NavbarWrapper from "@/components/NavbarWrapper";
 
 export default function RootLayout({ children }) {
-  const pathname = usePathname();
-
-  const noNavbarPages = ['/signup' , '/login'];
-  const showNavbar = !noNavbarPages.includes(pathname);
   return (
     <html lang="en">
       <body>
         <Provider store={store}>
-          { showNavbar && <Navbar /> }
-          <GlobalAlert />
-          {children}
+          <PersistGate loading={null} persistor={persistor}>
+            <NavbarWrapper />
+            <GlobalAlert />
+            {children}
+          </PersistGate>
         </Provider>
       </body>
     </html>
   );
-};
+}

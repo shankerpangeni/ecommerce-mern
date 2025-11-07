@@ -89,6 +89,13 @@ const Signup = () => {
                 error.message ||
                 "Login failed due to a network error.";
             setError(message);
+
+          dispatch(
+                showAlert({
+                    type: "error",
+                    message: message,
+                })
+                );
         
       }
 
