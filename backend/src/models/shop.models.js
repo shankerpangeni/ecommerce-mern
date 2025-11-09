@@ -38,8 +38,15 @@ const shopSchema = new mongoose.Schema({
     {
         url: { type: String, required: true },
         public_id: { type: String, required: true }
+    }],
+
+    createdBy: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "User",
+            required: true
     }
-]
+
+
 
 }, {timestamps: true});
 

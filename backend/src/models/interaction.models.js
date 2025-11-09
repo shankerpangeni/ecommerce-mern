@@ -1,3 +1,5 @@
+import mongoose from "mongoose";
+
 const interactionSchema = new mongoose.Schema({
 
   user:

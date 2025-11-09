@@ -6,6 +6,11 @@ import cloudinary from "./../config/cloudinary.js";
  */
 export const createShop = async (req, res) => {
   try {
+
+    if (req.body.contact) {
+  req.body.contact = JSON.parse(req.body.contact);
+}
+
     if (req.user.role !== "admin") {
       return res.status(403).json({ message: "Not authorized", success: false });
     }
@@ -29,6 +34,7 @@ export const createShop = async (req, res) => {
       rating: rating || 0,
       contact,
       images,
+      createdBy: req.user._id
     });
 
     res.status(201).json({ message: "Shop created successfully", shop, success: true });
@@ -76,6 +82,9 @@ export const getShopById = async (req, res) => {
  */
 export const updateShop = async (req, res) => {
   try {
+    if (req.body.contact) {
+  req.body.contact = JSON.parse(req.body.contact);
+}
     const { id } = req.params;
 
     if (req.user.role !== "admin") {

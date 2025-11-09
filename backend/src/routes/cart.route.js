@@ -1,5 +1,5 @@
 import express from "express";
-import { isAuthenticated } from "./../middlewares/auth.js";
+import { isAuthenticated } from "../middleware/isAuthenticated.js";
 import {
   addToCart,
   getCart,

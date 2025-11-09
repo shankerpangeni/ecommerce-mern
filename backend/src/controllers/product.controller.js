@@ -59,31 +59,12 @@ export const createProduct = async (req, res) => {
 /**
  * ✅ Get All Products
  */
-export const getAllProducts = async (req, res) => {
-  try {
-    const products = await Product.find().populate("shop", "name location rating");
-    if (!products || products.length === 0) {
-      return res.status(404).json({ message: "No products found", success: false });
-    }
-
-    return res.status(200).json({ message: "Products fetched", products, success: true });
-  } catch (error) {
-    console.error("Get All Products Error:", error);
-    return res.status(500).json({ message: "Server error", success: false });
-  }
-};
-
-/**
- * ✅ Get Product By ID
- */
 export const getProductById = async (req, res) => {
   try {
-    const id = req.params.id;
-    const product = await Product.findById(id).populate("shop");
+    const product = await Product.findById(req.params.id).populate("shop" , "name location images");
     if (!product) {
       return res.status(404).json({ message: "Product not found", success: false });
     }
-
     return res.status(200).json({ message: "Product found", product, success: true });
   } catch (error) {
     console.error("Get Product By ID Error:", error);
@@ -97,37 +78,49 @@ export const getProductById = async (req, res) => {
 export const updateProduct = async (req, res) => {
   try {
     const id = req.params.id;
-    if (req.user.role !== "admin") return res.status(403).json({ message: "Unauthorized", success: false });
+
+    if (req.user.role !== "admin")
+      return res.status(403).json({ message: "Unauthorized", success: false });
 
     const product = await Product.findById(id);
     if (!product) return res.status(404).json({ message: "Product not found", success: false });
 
     const {
-      name, description, price, brand, category, genderSpecific, stock, discountedPrice, removeImages
+      name,
+      description,
+      price,
+      brand,
+      category,
+      genderSpecific,
+      stock,
+      discountedPrice,
+      removeImages, // array of public_ids to remove
     } = req.body;
 
-    // Remove selected images from Cloudinary
+    // 1️⃣ Remove images from Cloudinary if needed
     if (removeImages && Array.isArray(removeImages) && removeImages.length > 0) {
-      const deletePromises = removeImages.map(pid => cloudinary.uploader.destroy(pid));
+      const deletePromises = removeImages.map((pid) => cloudinary.uploader.destroy(pid));
       await Promise.all(deletePromises);
-      product.images = product.images.filter(img => !removeImages.includes(img.public_id));
+      product.images = product.images.filter((img) => !removeImages.includes(img.public_id));
     }
 
-    // Add new images
+    // 2️⃣ Add new images if uploaded
     if (req.files && req.files.length > 0) {
       if (product.images.length + req.files.length > 5) {
-        return res.status(400).json({ message: "Maximum 5 images allowed", success: false });
+        return res
+          .status(400)
+          .json({ message: "Maximum 5 images allowed", success: false });
       }
 
-      const newImages = req.files.map(file => ({
+      const newImages = req.files.map((file) => ({
         url: file.path,
-        public_id: file.filename || file.path.split('/').pop()
+        public_id: file.filename || file.path.split("/").pop(),
       }));
 
       product.images = [...product.images, ...newImages];
     }
 
-    // Update fields
+    // 3️⃣ Update other fields
     if (name) product.name = name;
     if (description) product.description = description;
     if (price !== undefined) product.price = price;
@@ -136,10 +129,13 @@ export const updateProduct = async (req, res) => {
     if (genderSpecific) product.genderSpecific = genderSpecific;
     if (stock !== undefined) product.stock = stock;
     if (discountedPrice !== undefined) product.discountedPrice = discountedPrice;
+    if (req.body.shop) product.shop = req.body.shop;
 
     await product.save();
 
-    return res.status(200).json({ message: "Product updated successfully", product, success: true });
+    return res
+      .status(200)
+      .json({ message: "Product updated successfully", product, success: true });
   } catch (error) {
     console.error("Update Product Error:", error);
     return res.status(500).json({ message: "Server error", success: false });
@@ -168,6 +164,21 @@ export const deleteProduct = async (req, res) => {
     return res.status(200).json({ message: "Product deleted & images removed", success: true });
   } catch (error) {
     console.error("Delete Product Error:", error);
+    return res.status(500).json({ message: "Server error", success: false });
+  }
+};
+
+
+ export const getAllProducts = async (req, res) => {
+  try {
+    const products = await Product.find().populate("shop", "name location rating");
+    if (!products || products.length === 0) {
+      return res.status(404).json({ message: "No products found", success: false });
+    }
+
+    return res.status(200).json({ message: "Products fetched", products, success: true });
+  } catch (error) {
+    console.error("Get All Products Error:", error);
     return res.status(500).json({ message: "Server error", success: false });
   }
 };

@@ -9,6 +9,7 @@ import {
 
 import { isAuthenticated } from "../middleware/isAuthenticated.js";
 import { cloudinaryUploader } from "../middleware/upload.js"; // multer-storage-cloudinary
+import { multipleUpload } from "../middleware/uploadMiddleware.js";
 
 const router = express.Router();
 
@@ -16,15 +17,9 @@ const router = express.Router();
 router.post(
   "/create",
   isAuthenticated,
-  (req, res, next) => {
-    const upload = cloudinaryUploader("shops", "shop").array("images", 5); // max 5 images
-    upload(req, res, err => {
-      if (err) return res.status(400).json({ message: err.message, success: false });
-      next();
-    });
-  },
+  multipleUpload("shops"), // ✅ uses logged-in user._id as folder identifier
   createShop
-);
+)
 
 // ✅ Get all shops
 router.get("/getall", isAuthenticated, getAllShops);

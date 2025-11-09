@@ -27,3 +27,21 @@ export const singleUpload = (folderName, fieldName) => {
     });
   };
 };
+
+
+export const multipleUpload = (folderName) => {
+  return (req, res, next) => {
+    if (!req.user?._id) {
+      return res.status(401).json({ success: false, message: "User not authenticated." });
+    }
+
+    const upload = cloudinaryUploader(folderName, req.user._id).array("images", 5);
+
+    upload(req, res, (err) => {
+      if (err) {
+        return res.status(400).json({ success: false, message: err.message });
+      }
+      next();
+    });
+  };
+};

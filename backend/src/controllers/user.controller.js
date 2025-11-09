@@ -1,6 +1,7 @@
 import { User } from "./../models/user.models.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
+import { Cart } from "./../models/cart.models.js";
 
 /**
  * Register a new user
@@ -33,6 +34,12 @@ export const register = async (req, res) => {
       fullname,
       role: role || "user",
       password: hashPassword,
+    });
+
+        await Cart.create({
+      user: user._id,
+      items: [],
+      total:0
     });
 
     return res.status(201).json({
@@ -93,8 +100,8 @@ export const login = async (req, res) => {
 
     res.cookie("token", token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: process.env.NODE_ENV === "production" ? "None" : "Lax",
+      secure: process.env.NODE_ENV === "production", // only true in prod
+  sameSite: process.env.NODE_ENV === "production" ? "None" : "Lax",
       maxAge: 24 * 60 * 60 * 1000, // 1 day
     });
 

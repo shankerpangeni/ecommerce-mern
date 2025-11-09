@@ -83,9 +83,9 @@ export const getRecommendedProducts = async (req, res) => {
     // ✅ Cold Start → fallback (most popular / highest rated)
     if (!products || products.length < 6) {
       const fallbackProducts = await Product.find()
-        .populate("shop", "name location")
+        .populate("shop", "name location images")
         .sort({ rating: -1 })
-        .limit(6);
+        .limit(12);
 
       products = fallbackProducts;
     }

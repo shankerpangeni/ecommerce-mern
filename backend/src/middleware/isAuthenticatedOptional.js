@@ -7,7 +7,7 @@ export const isAuthenticatedOptional = async (req, res, next) => {
   if (!token) return next(); // continue without user
 
   try {
-    const decoded = jwt.verify(token, process.env.SECRET_KEY);
+    const decoded = jwt.verify(token, process.env.SECRET_JWT);
     req.user = await User.findById(decoded.id);
   } catch (err) {
     console.log("Optional auth failed:", err.message);
