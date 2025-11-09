@@ -39,7 +39,7 @@ export const register = async (req, res) => {
         await Cart.create({
       user: user._id,
       items: [],
-      total:0
+      
     });
 
     return res.status(201).json({

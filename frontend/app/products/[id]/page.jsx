@@ -15,6 +15,7 @@ export default function ProductDetailsPage() {
   const [quantity, setQuantity] = useState(1);
   const [reviewRating, setReviewRating] = useState(0);
   const [reviewComment, setReviewComment] = useState("");
+  const [formData , setFormData] = useState(null);
 
   useEffect(() => {
     const fetchProduct = async () => {

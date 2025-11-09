@@ -94,3 +94,21 @@ export const updateOrderStatus = async (req, res) => {
     res.status(500).json({ message: "Failed to update order status", success: false });
   }
 };
+
+
+
+export const getOrderBySessionId = async (req, res) => {
+  try {
+    const { sessionId } = req.params;
+    const order = await Order.findOne({ stripeSessionId: sessionId })
+      .populate("items.product")
+      .populate("user");
+
+    if (!order) return res.status(404).json({ success: false, message: "Order not found" });
+
+    res.status(200).json({ success: true, order });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ success: false, message: "Failed to fetch order" });
+  }
+};

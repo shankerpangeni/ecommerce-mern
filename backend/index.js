@@ -1,47 +1,47 @@
-import express from 'express';
-import cors from 'cors';
-import dotenv from 'dotenv';
+import express from "express";
+import cors from "cors";
+import dotenv from "dotenv";
 import cookieParser from "cookie-parser";
-import connectDb  from './src/utils/connectDb.js';
-import userRoutes from './src/routes/user.route.js';
-import productRoutes from './src/routes/product.route.js'
-import shopRoutes from './src/routes/shop.route.js'
-import recommendationRoutes from './src/routes/recommendation.route.js'
-import cartRoutes from './src/routes/cart.route.js'
+import connectDb from "./src/utils/connectDb.js";
+import userRoutes from "./src/routes/user.route.js";
+import productRoutes from "./src/routes/product.route.js";
+import shopRoutes from "./src/routes/shop.route.js";
+import recommendationRoutes from "./src/routes/recommendation.route.js";
+import cartRoutes from "./src/routes/cart.route.js";
+import paymentRoutes from "./src/routes/payment.route.js";
+import orderRoutes from "./src/routes/order.route.js"
 
 dotenv.config();
-
 const app = express();
-app.use(express.json());
 
-
+// Cookies
 app.use(cookieParser());
 
-
-app.use("/api/payment/webhook", express.raw({ type: "application/json" }));
-
-
-
-const corsOptions = {
-    origin: 'http://localhost:3000',
-    credentials: true
-}
+// CORS
+const corsOptions = { origin: "http://localhost:3000", credentials: true };
 app.use(cors(corsOptions));
 
-//api Urls
-//user api
-app.use('/api/v1/user' , userRoutes)
-app.use('/api/v1/product' , productRoutes);
-app.use('/api/v1/shop' ,shopRoutes )
-app.use('/api/v1/recommendation' ,recommendationRoutes )
-app.use('/api/v1/cart' ,cartRoutes )
+// ⚠️ Stripe webhook route must come before JSON parser
+app.use(
+  "/api/v1/payment/webhook",
+  express.raw({ type: "application/json" }) // raw body for Stripe signature verification
+);
 
+// For all other routes, parse JSON
+app.use(express.json());
 
+// API Routes
+app.use("/api/v1/user", userRoutes);
+app.use("/api/v1/product", productRoutes);
+app.use("/api/v1/shop", shopRoutes);
+app.use("/api/v1/recommendation", recommendationRoutes);
+app.use("/api/v1/cart", cartRoutes);
+app.use("/api/v1/payment", paymentRoutes);
+app.use("/api/v1/order",orderRoutes);
 
-
-const port = process.env.PORT;
-app.listen(port || 3000 , (req, res) => {
-    console.log('Backend running successfully in port ', port);
-    connectDb();
-
-})
+// Connect DB & listen
+const port = process.env.PORT || 3000;
+app.listen(port, () => {
+  console.log("Backend running on port", port);
+  connectDb();
+});

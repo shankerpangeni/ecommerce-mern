@@ -18,16 +18,10 @@ const cartSchema = new mongoose.Schema({
             min:1
         },
 
-        productTotal:{
-            type:Number,
-            default:0
-        }
+        
     }],
 
-    total: {
-        type: Number,
-        default: 0,
-    }
+    
 
 },{timestamps: true});
 
