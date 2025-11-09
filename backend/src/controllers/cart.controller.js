@@ -25,7 +25,7 @@ export const addToCart = async (req, res) => {
     if (!cart) {
       cart = await Cart.create({
         user: userId,
-        products: [{ product: productId, quantity ,productTotal:productsTotal }],
+        products: [{ product: productId, quantity }],
       });
     } else {
       if (!cart.products) cart.products = [];

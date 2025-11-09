@@ -1,10 +1,10 @@
-import { useState, useEffect } from "react";
+"use client";
+
+import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { IoSearch } from "react-icons/io5";
-import { RxHamburgerMenu } from "react-icons/rx";
 import { FiShoppingCart } from "react-icons/fi";
 import { FaRegCircleUser } from "react-icons/fa6";
-import { MdClose } from "react-icons/md";
 import { useDispatch, useSelector } from "react-redux";
 import { useRouter } from "next/navigation";
 import { clearUser } from "@/app/store/slices/authSlice";
@@ -12,57 +12,80 @@ import api from "@/lib/api";
 import toast from "react-hot-toast";
 
 const Navbar = () => {
-  const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [profileOpen, setProfileOpen] = useState(false);
-  const [cartCount, setCartCount] = useState(0);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchResults, setSearchResults] = useState([]);
+  const [showSearchResults, setShowSearchResults] = useState(false);
+  const [activeIndex, setActiveIndex] = useState(-1);
+  const searchTimeout = useRef(null);
+  const [profileOpen , setProfileOpen] = useState(false)
+
   const dispatch = useDispatch();
   const router = useRouter();
-
   const { user } = useSelector((state) => state.auth);
 
-  // ✅ Fetch cart count
+  // Fetch search results live
   useEffect(() => {
-    if (!user) return;
+    if (!searchQuery.trim()) {
+      setSearchResults([]);
+      setShowSearchResults(false);
+      return;
+    }
 
-    const fetchCartCount = async () => {
+    if (searchTimeout.current) clearTimeout(searchTimeout.current);
+
+    searchTimeout.current = setTimeout(async () => {
       try {
-        const res = await api.get("/api/v1/cart");
-        if (res.data.success && res.data.cart?.products) {
-          setCartCount(res.data.cart.products.length);
-        } else {
-          setCartCount(0);
+        const res = await api.get(`/api/v1/recommendation/search?keyword=${encodeURIComponent(searchQuery)}`);
+        if (res.data.success) {
+          setSearchResults(res.data.products);
+          setShowSearchResults(true);
         }
       } catch (err) {
-        if (err.response?.status === 404) {
-          // no cart found yet → count 0
-          setCartCount(0);
-        } else {
-          console.error("Failed to fetch cart count:", err.message);
-        }
+        console.error("Search error:", err);
       }
-    };
+    }, 300);
 
-    fetchCartCount();
-  }, [user]);
+    return () => clearTimeout(searchTimeout.current);
+  }, [searchQuery]);
+
+  // Keyboard navigation
+  const handleKeyDown = (e) => {
+    if (!showSearchResults) return;
+
+    if (e.key === "ArrowDown") {
+      setActiveIndex((prev) => Math.min(prev + 1, searchResults.length - 1));
+    } else if (e.key === "ArrowUp") {
+      setActiveIndex((prev) => Math.max(prev - 1, 0));
+    } else if (e.key === "Enter") {
+      if (activeIndex >= 0 && searchResults[activeIndex]) {
+        handleResultClick(searchResults[activeIndex]._id);
+      }
+    }
+  };
+
+  const handleResultClick = (id) => {
+    router.push(`/product/${id}`);
+    setShowSearchResults(false);
+    setSearchQuery("");
+    setActiveIndex(-1);
+  };
 
   const handleLogout = async () => {
     try {
       const res = await api.get("/api/v1/user/logout");
       if (res.data.success) {
         dispatch(clearUser());
-        toast.success("Successfully logged out");
+        toast.success("Logged out");
         router.push("/login");
-      } else {
-        toast.error(res.data.message || "Logout failed");
       }
     } catch (err) {
-      toast.error(err.response?.data?.message || err.message || "Internal server error");
+      toast.error(err.response?.data?.message || err.message || "Logout failed");
     }
   };
 
   return (
     <nav className="flex items-center justify-between px-4 py-3 shadow-md bg-white sticky top-0 z-50">
-      {/* Left - Logo */}
+      {/* Logo */}
       <Link href="/">
         <h1 className="text-2xl md:text-3xl font-bold text-black">
           smart<span className="text-orange-700">Shop</span>
@@ -70,22 +93,43 @@ const Navbar = () => {
       </Link>
 
       {/* Search */}
-      <div className="hidden md:flex items-center flex-1 max-w-lg mx-4">
+      <div className="hidden md:flex items-center flex-1 max-w-lg mx-4 relative">
         <input
           type="search"
           placeholder="Search products..."
           className="flex-1 p-2 px-4 rounded-xl border border-gray-300 outline-none focus:ring-2 focus:ring-blue-500"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          onFocus={() => searchResults.length && setShowSearchResults(true)}
+          onBlur={() => setTimeout(() => setShowSearchResults(false), 200)}
+          onKeyDown={handleKeyDown}
         />
         <IoSearch className="ml-2 text-blue-950 cursor-pointer hover:scale-110 transition-transform duration-300" />
+
+        {showSearchResults && searchResults.length > 0 && (
+          <div className="absolute top-full left-0 w-full bg-white border border-gray-300 rounded-lg mt-1 shadow-lg max-h-64 overflow-y-auto z-50">
+            {searchResults.map((p, index) => (
+              <div
+                key={p._id}
+                className={`p-2 px-4 cursor-pointer ${
+                  index === activeIndex ? "bg-blue-100" : "hover:bg-gray-100"
+                }`}
+                onClick={() => handleResultClick(p._id)}
+              >
+                {p.name} - ${p.price.toFixed(2)}
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
-      {/* Right */}
+      {/* Right section */}
       <div className="flex items-center gap-5 relative">
         {/* Cart */}
         <div className="relative">
-          {cartCount > 0 && (
+          {user && user.cartCount > 0 && (
             <span className="absolute -top-2 -right-2 text-xs font-semibold bg-orange-600 p-1 px-2 rounded-full text-white">
-              {cartCount}
+              {user.cartCount}
             </span>
           )}
           <Link href="/cart">
@@ -95,11 +139,7 @@ const Navbar = () => {
 
         {/* Profile / Auth */}
         {user ? (
-          <div
-            className="relative"
-            onMouseEnter={() => setProfileOpen(true)}
-            onMouseLeave={() => setProfileOpen(false)}
-          >
+          <div className="relative">
             <FaRegCircleUser
               className="text-2xl cursor-pointer hover:scale-110 transition-transform duration-300"
               onClick={() => setProfileOpen(!profileOpen)}
