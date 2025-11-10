@@ -20,7 +20,7 @@ app.use(cookieParser());
 // CORS
 const allowedOrigins = [
   "http://localhost:3000",
-  "https://ecommerce-mern-kkh1v53ys-shanker-pangenis-projects.vercel.app"
+  "https://ecommerce-mern-seven-zeta.vercel.app/"
 ];
 
 const corsOptions = {
