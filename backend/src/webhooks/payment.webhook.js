@@ -88,8 +88,12 @@ export const stripeWebhook = async (req, res) => {
       console.log(`[DB SUCCESS] Order ${newOrder._id} created for user ${user.email}.`);
 
       // Clear user cart
-      await Cart.findOneAndDelete({ user: userId });
-      console.log(`[DB SUCCESS] Cart cleared for user ${user.email}.`);
+      // Empty the cart instead of deleting it
+      await Cart.findOneAndUpdate(
+        { user: userId },
+        { $set: { products: [] } }
+      );
+      console.log(`[DB SUCCESS] Cart emptied for user ${user.email}.`);
 
       // Send email receipt
       const emailHTML = `
