@@ -5,8 +5,9 @@ import Image from "next/image";
 import Link from "next/link";
 import api from "@/lib/api";
 import toast, { Toaster } from "react-hot-toast";
+import ProtectedRoute from "@/components/ProtectedRoute";
 
-export default function CartPage() {
+function CartContent() {
   const [cart, setCart] = useState(null);
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState(false);
@@ -61,9 +62,21 @@ export default function CartPage() {
     }
   };
 
-  const getTotal = () => {
-    return cart?.products?.reduce((sum, item) => sum + item.product.price * item.quantity, 0);
+  const handleCheckout = async () => {
+    try {
+      const res = await api.post("/api/v1/payment/checkout");
+      if (res.data.success && res.data.url) {
+        window.location.href = res.data.url;
+      } else {
+        toast.error("Failed to initiate payment");
+      }
+    } catch (error) {
+      console.error(error.response?.data || error.message);
+      toast.error(error.response?.data?.message || "Error during checkout");
+    }
   };
+
+  const getTotal = () => cart?.products?.reduce((sum, item) => sum + item.product.price * item.quantity, 0);
 
   if (loading) return <div className="text-center text-gray-500 mt-20">Loading Cart...</div>;
 
@@ -80,37 +93,22 @@ export default function CartPage() {
       </div>
     );
 
-   const handleCheckout = async () => {
-  try {
-    const res = await api.post("/api/v1/payment/checkout"); // withCredentials:true handles cookies
-    if (res.data.success && res.data.url) {
-      window.location.href = res.data.url; // redirect to Stripe Checkout
-    } else {
-      toast.error("Failed to initiate payment");
-    }
-  } catch (error) {
-    console.error(error.response?.data || error.message);
-    toast.error(error.response?.data?.message || "Error during checkout");
-  }
-};
-
   return (
     <div className="max-w-7xl mx-auto p-6 flex flex-col md:flex-row gap-8 bg-white rounded-lg shadow-sm mt-8">
       <Toaster position="top-right" reverseOrder={false} />
 
-      {/* Left - Cart Items */}
+      {/* Cart items */}
       <div className="flex-1">
         <h1 className="text-2xl font-semibold mb-6 text-gray-800">Shopping Cart</h1>
         <div className="space-y-6">
           {cart.products.map((item, index) => {
             const product = item.product;
-            if (!product) return null; // skip if product is undefined
+            if (!product) return null;
             return (
               <div
                 key={product._id || index}
                 className="flex flex-col md:flex-row justify-between items-center border-b pb-6 gap-4"
               >
-                {/* Product Details */}
                 <div className="flex items-center gap-4 w-full md:w-2/3">
                   <div className="relative w-24 h-24 shrink-0">
                     <Image
@@ -141,7 +139,6 @@ export default function CartPage() {
                   </div>
                 </div>
 
-                {/* Quantity and Price */}
                 <div className="flex flex-col md:flex-row items-center gap-4">
                   <div className="flex items-center border rounded-lg">
                     <button
@@ -178,7 +175,7 @@ export default function CartPage() {
         </div>
       </div>
 
-      {/* Right - Order Summary */}
+      {/* Order summary */}
       <div className="md:w-1/3 bg-gray-50 border rounded-lg p-6 h-fit">
         <h2 className="text-xl font-semibold text-gray-800 mb-4">Order Summary</h2>
 
@@ -200,10 +197,21 @@ export default function CartPage() {
           <span>Rs. {getTotal()}</span>
         </div>
 
-        <button  onClick={handleCheckout} className="w-full mt-6 bg-orange-600 text-white py-3 rounded-lg font-semibold hover:bg-orange-700 transition">
+        <button
+          onClick={handleCheckout}
+          className="w-full mt-6 bg-orange-600 text-white py-3 rounded-lg font-semibold hover:bg-orange-700 transition"
+        >
           Proceed to Checkout
         </button>
       </div>
     </div>
+  );
+}
+
+export default function CartPage() {
+  return (
+    <ProtectedRoute>
+      <CartContent />
+    </ProtectedRoute>
   );
 }

@@ -7,6 +7,7 @@ import api from "@/lib/api";
 import { FaStar, FaStarHalfAlt, FaRegStar } from "react-icons/fa";
 import Link from "next/link";
 import toast, { Toaster } from "react-hot-toast";
+import { useSelector } from "react-redux";
 
 export default function ProductDetailsPage() {
   const { id } = useParams();
@@ -16,6 +17,8 @@ export default function ProductDetailsPage() {
   const [reviewRating, setReviewRating] = useState(0);
   const [reviewComment, setReviewComment] = useState("");
   const [formData , setFormData] = useState(null);
+  const isAuthenticated = useSelector((state)=> state.auth)
+  
 
   useEffect(() => {
     const fetchProduct = async () => {
