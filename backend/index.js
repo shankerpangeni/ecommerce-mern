@@ -18,7 +18,22 @@ const app = express();
 app.use(cookieParser());
 
 // CORS
-const corsOptions = { origin: process.env.FRONTEND_URL, credentials: true };
+const allowedOrigins = [
+  "http://localhost:3000",
+  "https://ecommerce-mern-kkh1v53ys-shanker-pangenis-projects.vercel.app"
+];
+
+const corsOptions = {
+  origin: function (origin, callback) {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error(`CORS error: Origin ${origin} not allowed`));
+    }
+  },
+  credentials: true,
+};
+
 app.use(cors(corsOptions));
 
 // ⚠️ Stripe webhook route must come before JSON parser
