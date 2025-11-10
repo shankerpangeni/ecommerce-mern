@@ -8,6 +8,7 @@ import { FaStar, FaStarHalfAlt, FaRegStar } from "react-icons/fa";
 import Link from "next/link";
 import toast, { Toaster } from "react-hot-toast";
 import { useSelector } from "react-redux";
+import { useRouter } from "next/router";
 
 export default function ProductDetailsPage() {
   const { id } = useParams();
@@ -17,7 +18,8 @@ export default function ProductDetailsPage() {
   const [reviewRating, setReviewRating] = useState(0);
   const [reviewComment, setReviewComment] = useState("");
   const [formData , setFormData] = useState(null);
-  const isAuthenticated = useSelector((state)=> state.auth)
+  const isAuthenticated = useSelector(state=> state.auth);
+  const router = useRouter();
   
 
   useEffect(() => {
@@ -40,6 +42,10 @@ export default function ProductDetailsPage() {
   };
 
   const handleAddToCart = async () => {
+    if(!isAuthenticated){
+      router.push('/login');
+    }
+
     try {
       const res = await api.post("/api/v1/cart/add", {
         productId: product._id,
