@@ -18,7 +18,7 @@ const app = express();
 app.use(cookieParser());
 
 // CORS
-const corsOptions = { origin: "http://localhost:3000", credentials: true };
+const corsOptions = { origin: process.env.FRONTEND_URL, credentials: true };
 app.use(cors(corsOptions));
 
 // ⚠️ Stripe webhook route must come before JSON parser
