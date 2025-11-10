@@ -19,22 +19,22 @@ app.use(cookieParser());
 
 // CORS
 const allowedOrigins = [
-  "http://localhost:3000",
-  "https://ecommerce-mern-seven-zeta.vercel.app/"
+  'http://localhost:3000', // for local dev
+  'https://ecommerce-mern-seven-zeta.vercel.app' // production frontend
 ];
 
-const corsOptions = {
-  origin: function (origin, callback) {
+app.use(cors({
+  origin: (origin, callback) => {
     if (!origin || allowedOrigins.includes(origin)) {
       callback(null, true);
     } else {
-      callback(new Error(`CORS error: Origin ${origin} not allowed`));
+      callback(new Error('CORS not allowed'));
     }
   },
   credentials: true,
-};
-
-app.use(cors(corsOptions));
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+}));
 
 // ⚠️ Stripe webhook route must come before JSON parser
 app.use(
