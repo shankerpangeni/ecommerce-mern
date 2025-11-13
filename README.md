@@ -6,7 +6,7 @@ The platform allows users to browse, manage, and purchase products securely whil
 ---
 
 ## 🚀 Live Demo
-👉 [Live Website](https://your-live-link-here.com)
+👉 [Live Website](https://ecommerce-mern-seven-zeta.vercel.app/)
 
 ---
 
